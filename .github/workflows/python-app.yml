@@ -10,8 +10,9 @@ on:
     branches:
       - main
       - master
-      
+
   workflow_dispatch:
+
 jobs:
   build:
 
@@ -23,33 +24,47 @@ jobs:
 
     steps:
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Upgrade pip
-      run: |
-        python -m pip install --upgrade pip
+      # Upgrade pip
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Verify Flask installation
-      run: |
-        python -c "import flask; print(flask.__version__)"
+      # Verify Flask installation
+      - name: Verify Flask installation
+        run: |
+          python -c "import flask; print(flask.__version__)"
 
-    - name: Run basic syntax check
-      run: |
-        python -m py_compile app.py
+      # Syntax check
+      - name: Run basic syntax check
+        run: |
+          python -m py_compile app.py
 
-    - name: Start Flask app test
-      run: |
-        python app.py &
-        sleep 5
-        curl http://127.0.0.1:5000/items
-        
+      # Start Flask app and save logs
+      - name: Start Flask app test
+        run: |
+          python app.py > flask-output.log 2>&1 &
+          sleep 5
+          curl http://127.0.0.1:5000/items
+
+      # Upload artifact
+      - name: Upload Flask Logs Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-app-logs
+          path: flask-output.log
+          retention-days: 7
